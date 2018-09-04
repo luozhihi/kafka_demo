@@ -1,0 +1,80 @@
+elasticsearch学习
+版本
+	elasticsearch 6.1.1
+	
+官方API：https://www.elastic.co/guide/en/elasticsearch/client/java-api/current/java-search.html
+1.引入依赖
+		<dependency>
+            <groupId>org.elasticsearch</groupId>
+            <artifactId>elasticsearch</artifactId>
+            <version>6.1.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.elasticsearch.client</groupId>
+            <artifactId>transport</artifactId>
+            <version>6.1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.11.1</version>
+        </dependency>
+		
+		
+2.连接到es服务，获得client对象
+		 private TransportClient client = null;
+    {
+        try {
+            client = new PreBuiltTransportClient(Settings.EMPTY)
+                    .addTransportAddress(new TransportAddress(InetAddress.getByName("127.0.0.1"), 9300));
+            // 集群则将新的节点的信息添加到对象中
+            // 如果节点名字不是默认的名字，则手动设置
+            Settings settings = Settings.builder()
+                    .put("cluster.name", "myClusterName").build();
+            //TransportClient client = new PreBuiltTransportClient(settings);
+            System.out.println("连接es服务成功");
+        } catch (UnknownHostException e) {
+            System.out.println("连接es服务失败");
+            e.printStackTrace();
+        }
+	}
+	
+3.通过client对象操作es系统
+	添加数据
+		// 以hashMap的形式添加到索引库
+		// 6.x版本之后的es无法在一个index中添加多个type
+		IndexResponse response = client.prepareIndex(index, type, hashMap.get("id").toString())
+                        .setSource(hashMap).execute().actionGet();
+	
+	查询根据id
+		GetResponse response = client.prepareGet(index, type, id).get();
+		Map<String, Object> result = response.getSource();
+		
+	根据字段和关键字查询
+		// 传入的index的名字必须存在该index（否则报错），field可以不存在 
+		QueryBuilder queryBuilder = QueryBuilders.termQuery(fieldName, key);
+        SearchResponse response = client.prepareSearch(indexs)
+                .setTypes(types)
+                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+                .setQuery(queryBuilder)                 // Query
+                .get();
+        SearchHit[] hits = response.getHits().getHits();
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        for (SearchHit hit : hits) {
+            Map<String, Object> sourceAsMap = hit.getSourceAsMap();
+            list.add(sourceAsMap);
+        }
+        return list;
+		
+	根据id删除指定的数据
+		DeleteResponse deleteResponse = client.prepareDelete(index, type, id).get();
+		// deleteResponse.status()将返回删除的状态
+	删除index通过indexName
+		DeleteIndexResponse dResponse = client.admin().indices().prepareDelete(indexName)
+                .execute().actionGet();
+        // dResponse.isAcknowledged(); 删除状态
+	
+	修改可以通过添加完成
+		
+	

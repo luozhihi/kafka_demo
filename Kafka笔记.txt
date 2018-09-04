@@ -1,0 +1,14 @@
+Kafka学习
+版本：zookeeper 3.4.11   kafka 2.12-1.0.0.tgz
+
+1.启动服务
+	官网地址：http://kafka.apache.org/quickstart
+	windows下的指令文件在bin\windows\
+	启动步骤：1.启动zookeeper 配置环境变量之后可以直接 zkserver启动
+			  2.启动kafka的服务
+			  3.创建一个topic
+			  4.创建一个producer
+			  5.创建一个consumer 
+			  
+	测试：在producer中发消息，consumer中可以接收到
+2.在spring中使用kafka
